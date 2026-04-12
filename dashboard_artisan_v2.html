@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1D9E75">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mon Appli RDV">
+<title>Mon Appli RDV</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1D9E75; }
+.app { display: flex; flex-direction: column; height: 100dvh; width: 100%; background: #F7F7F5; }
+.topbar { background: #1D9E75; padding: env(safe-area-inset-top, 44px) 20px 16px; flex-shrink: 0; }
+.topbar-greeting { color: #fff; font-size: 20px; font-weight: 600; }
+.topbar-sub { color: #9FE1CB; font-size: 13px; margin-top: 2px; }
+.topbar-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 20px; padding: 5px 12px; margin-top: 10px; }
+.topbar-badge-dot { width: 7px; height: 7px; background: #fff; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.topbar-badge span { color: #fff; font-size: 12px; }
+.topbar-back { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.85); font-size: 15px; margin-bottom: 8px; cursor: pointer; padding: 4px 0; }
+.content { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; margin-top: 4px; }
+.section-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+.section-count { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600; }
+.card { background: #fff; border-radius: 16px; border: 0.5px solid #e8e8e4; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: transform 0.1s; }
+.card:active { transform: scale(0.98); }
+.card-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.card-name { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+.card-meta { font-size: 13px; color: #888780; margin-top: 3px; }
+.card-pref { font-size: 13px; margin-top: 10px; padding: 8px 12px; border-radius: 10px; font-weight: 500; }
+.card-time { font-size: 11px; color: #b4b2a9; margin-top: 8px; }
+.btn-voir { font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 20px; border: none; cursor: pointer; white-space: nowrap; background: #FAEEDA; color: #854F0B; flex-shrink: 0; }
+.card-confirmed { display: flex; align-items: center; gap: 12px; }
+.card-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.card-time-confirmed { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.card-desc { font-size: 13px; color: #888780; margin-top: 3px; }
+.navbar { background: #fff; border-top: 0.5px solid #e8e8e4; padding: 10px 0; padding-bottom: env(safe-area-inset-bottom, 10px); display: flex; flex-shrink: 0; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 0; }
+.nav-label { font-size: 10px; color: #888780; }
+.nav-dot { width: 4px; height: 4px; border-radius: 50%; background: #1D9E75; margin-top: 1px; }
+.screen { display: none; flex-direction: column; height: 100dvh; }
+.screen.active { display: flex; }
+.detail-block { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; border: 0.5px solid #e8e8e4; }
+.detail-label { font-size: 11px; color: #b4b2a9; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-val { font-size: 16px; color: #1a1a1a; font-weight: 500; }
+.pref-highlight { background: #E1F5EE; border-radius: 14px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.timer-bar { background: #FAEEDA; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.action-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 6px; }
+.action-btn { padding: 16px 8px; border-radius: 16px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; line-height: 1.4; transition: transform 0.1s; }
+.action-btn:active { transform: scale(0.96); }
+.planning-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 0.5px solid #e8e8e4; }
+.planning-time { font-size: 13px; font-weight: 500; min-width: 52px; color: #888780; }
+.planning-block { flex: 1; border-radius: 10px; padding: 10px 14px; }
+.toast { background: #085041; color: #fff; border-radius: 16px; padding: 14px 18px; margin: 16px; font-size: 14px; line-height: 1.5; }
+.success-circle { width: 72px; height: 72px; background: #E1F5EE; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+<div id="s-dashboard" class="screen active">
+  <div class="topbar">
+    <div class="topbar-greeting">Bonjour Morgan</div>
+    <div class="topbar-sub">Lundi 14 avril</div>
+    <div class="topbar-badge"><div class="topbar-badge-dot"></div><span>06 12 34 56 78 · actif</span></div>
+  </div>
+  <div class="content">
+    <div style="margin-bottom:20px">
+      <div class="section-header">
+        <span class="section-title" style="color:#854F0B">A confirmer</span>
+        <span class="section-count" style="background:#FAEEDA;color:#854F0B">2 demandes</span>
+      </div>
+      <div class="card" style="border-left:4px solid #BA7517;border-radius:0 16px 16px 0" onclick="show('s-detail')">
+        <div class="card-row">
+          <div style="flex:1"><div class="card-name">Dupont Jean</div><div class="card-meta">Fuite sous évier</div></div>
+          <button class="btn-voir">Voir</button>
+        </div>
+        <div class="card-pref" style="background:#FAEEDA;color:#854F0B">Préfère : Mardi 14h</div>
+        <div class="card-time">Reçu il y a 3h · Répondre avant 21h</div>
+      </div>
+      <div class="card" style="border-left:4px solid #BA7517;border-radius:0 16px 16px 0">
+        <div class="card-row">
+          <div style="flex:1"><div class="card-name">Leroy Michel</div><div class="card-meta">Remplacement robinet</div></div>
+          <button class="btn-voir">Voir</button>
+        </div>
+        <div class="card-pref" style="background:#FAEEDA;color:#854F0B">Préfère : Jeudi 9h</div>
+        <div class="card-time">Reçu il y a 1h · Répondre avant demain</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-header">
+        <span class="section-title" style="color:#085041">Planning confirmé</span>
+        <span class="section-count" style="background:#E1F5EE;color:#085041">2 RDV</span>
+      </div>
+      <div class="card"><div class="card-confirmed"><div class="card-dot" style="background:#1D9E75"></div><div><div class="card-time-confirmed">Aujourd'hui · 9h00</div><div class="card-desc">Martin Paul · Chauffe-eau</div></div></div></div>
+      <div class="card"><div class="card-confirmed"><div class="card-dot" style="background:#1D9E75"></div><div><div class="card-time-confirmed">Mercredi · 14h00</div><div class="card-desc">Simon Claire · Radiateur</div></div></div></div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="8" height="8" rx="2" fill="#1D9E75"/><rect x="12" y="2" width="8" height="8" rx="2" fill="#1D9E75"/><rect x="2" y="12" width="8" height="8" rx="2" fill="#1D9E75"/><rect x="12" y="12" width="8" height="8" rx="2" fill="#9FE1CB"/></svg>
+      <span class="nav-label" style="color:#1D9E75;font-weight:600">Accueil</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" onclick="show('s-planning')">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="16" rx="2" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M7 2v4M15 2v4M2 10h18" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="nav-label">Planning</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M3 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+      <span class="nav-label">Réglages</span>
+    </div>
+  </div>
+</div>
+
+<div id="s-detail" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-dashboard')">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Retour
+    </div>
+    <div class="topbar-greeting" style="font-size:19px">Dupont Jean</div>
+    <div class="topbar-sub">06 87 65 43 21</div>
+  </div>
+  <div class="content">
+    <div class="detail-block"><div class="detail-label">Motif</div><div class="detail-val">Fuite sous évier</div></div>
+    <div class="pref-highlight">
+      <div><div style="font-size:12px;color:#085041;margin-bottom:4px">Préférence du client</div><div style="font-size:18px;font-weight:600;color:#085041">Mardi 14h</div></div>
+      <div style="background:#1D9E75;border-radius:20px;padding:6px 14px"><span style="color:#fff;font-size:13px;font-weight:600">Libre ✓</span></div>
+    </div>
+    <div class="timer-bar">
+      <span style="font-size:13px;color:#854F0B">Délai de réponse restant</span>
+      <span style="font-size:15px;font-weight:600;color:#854F0B">21h</span>
+    </div>
+    <div class="detail-block">
+      <div class="detail-label">Ton planning ce mardi</div>
+      <div style="margin-top:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #e8e8e4">
+          <span style="font-size:13px;color:#888780;min-width:36px;font-weight:500">9h</span>
+          <span style="font-size:14px;color:#085041;background:#E1F5EE;border-radius:8px;padding:4px 10px;font-weight:500">Martin Paul · Chauffe-eau</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+          <span style="font-size:13px;color:#888780;min-width:36px;font-weight:500">14h</span>
+          <span style="font-size:15px;color:#1D9E75;font-weight:600">Libre ✓</span>
+        </div>
+      </div>
+    </div>
+    <div class="action-bar">
+      <button class="action-btn" style="background:#E1F5EE;color:#085041" onclick="show('s-confirmed')">✓ Valider<br>Mardi 14h</button>
+      <button class="action-btn" style="background:#FAEEDA;color:#854F0B" onclick="show('s-deplacer')">↔ Déplacer</button>
+      <button class="action-btn" style="background:#FCEBEB;color:#A32D2D">✗ Refuser</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-confirmed" class="screen">
+  <div class="topbar">
+    <div class="topbar-greeting" style="font-size:19px">RDV confirmé</div>
+    <div class="topbar-sub">SMS envoyé automatiquement</div>
+  </div>
+  <div class="toast">SMS envoyé à Dupont Jean :<br>"RDV confirmé avec Morgan · Mardi 14h. À bientôt !"</div>
+  <div class="content" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+    <div class="success-circle"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M7 18l8 8L29 10" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div style="font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:8px;text-align:center">Dupont Jean · Mardi 14h</div>
+    <div style="font-size:15px;color:#888780;margin-bottom:40px;text-align:center">RDV ajouté dans ton planning</div>
+    <button onclick="show('s-dashboard')" style="width:100%;padding:16px;background:#1D9E75;color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:600;cursor:pointer">Retour au dashboard</button>
+  </div>
+</div>
+
+<div id="s-deplacer" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-detail')">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Retour
+    </div>
+    <div class="topbar-greeting" style="font-size:19px">Déplacer le RDV</div>
+    <div class="topbar-sub">Dupont Jean</div>
+  </div>
+  <div class="content">
+    <div class="detail-block" style="margin-bottom:10px">
+      <div class="detail-label">Créneaux disponibles</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+        <div onclick="show('s-confirmed')" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e8e8e4;cursor:pointer;background:#fff">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid #ddd;flex-shrink:0"></div>
+          <div><div style="font-size:15px;font-weight:500;color:#1a1a1a">Jeudi 10h</div><div style="font-size:12px;color:#888780">Cette semaine</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e8e8e4;cursor:pointer;background:#fff">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid #ddd;flex-shrink:0"></div>
+          <div><div style="font-size:15px;font-weight:500;color:#1a1a1a">Jeudi 14h</div><div style="font-size:12px;color:#888780">Cette semaine</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e8e8e4;cursor:pointer;background:#fff">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid #ddd;flex-shrink:0"></div>
+          <div><div style="font-size:15px;font-weight:500;color:#1a1a1a">Vendredi 9h</div><div style="font-size:12px;color:#888780">Cette semaine</div></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#b4b2a9;text-align:center;margin-bottom:16px">Créneaux depuis ton Google Calendar</p>
+    <button style="width:100%;padding:16px;background:#1D9E75;color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:600;cursor:pointer;opacity:0.4" disabled>Envoyer la proposition</button>
+  </div>
+</div>
+
+<div id="s-planning" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-dashboard')">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Retour
+    </div>
+    <div class="topbar-greeting" style="font-size:19px">Semaine du 14 avril</div>
+  </div>
+  <div class="content">
+    <div class="planning-row"><div class="planning-time">Lun · 9h</div><div class="planning-block" style="background:#E1F5EE"><div style="font-size:15px;font-weight:600;color:#085041">Martin Paul</div><div style="font-size:12px;color:#0F6E56;margin-top:2px">Chauffe-eau · confirmé</div></div></div>
+    <div class="planning-row"><div class="planning-time">Mar · 14h</div><div class="planning-block" style="background:#FAEEDA"><div style="font-size:15px;font-weight:600;color:#854F0B">Dupont Jean</div><div style="font-size:12px;color:#BA7517;margin-top:2px">Fuite évier · en attente</div></div></div>
+    <div class="planning-row"><div class="planning-time">Mer · 14h</div><div class="planning-block" style="background:#E1F5EE"><div style="font-size:15px;font-weight:600;color:#085041">Simon Claire</div><div style="font-size:12px;color:#0F6E56;margin-top:2px">Radiateur · confirmé</div></div></div>
+    <div class="planning-row"><div class="planning-time">Jeu</div><div class="planning-block" style="background:#f0f0ed"><div style="font-size:15px;color:#b4b2a9">Libre</div></div></div>
+    <div class="planning-row" style="border-bottom:none"><div class="planning-time">Ven</div><div class="planning-block" style="background:#f0f0ed"><div style="font-size:15px;color:#b4b2a9">Libre</div></div></div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item" onclick="show('s-dashboard')">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="8" height="8" rx="2" fill="#888780"/><rect x="12" y="2" width="8" height="8" rx="2" fill="#888780"/><rect x="2" y="12" width="8" height="8" rx="2" fill="#888780"/><rect x="12" y="12" width="8" height="8" rx="2" fill="#c8c6be"/></svg>
+      <span class="nav-label">Accueil</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="16" rx="2" stroke="#1D9E75" stroke-width="1.5" fill="none"/><path d="M7 2v4M15 2v4M2 10h18" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="nav-label" style="color:#1D9E75;font-weight:600">Planning</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M3 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+      <span class="nav-label">Réglages</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
