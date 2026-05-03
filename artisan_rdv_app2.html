@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#64ce96">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mon Planning Pro">
+<title>Mon Planning Pro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;width:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F7F7F5}
+.app{display:flex;flex-direction:column;height:100dvh;width:100%;max-width:480px;margin:0 auto;background:#F7F7F5}
+.topbar{background:#64ce96;padding:env(safe-area-inset-top,20px) 20px 16px;flex-shrink:0}
+.topbar-greeting{color:#fff;font-size:20px;font-weight:600}
+.topbar-sub{color:rgba(255,255,255,0.75);font-size:13px;margin-top:2px}
+.topbar-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);border-radius:20px;padding:5px 12px;margin-top:10px}
+.topbar-badge-dot{width:7px;height:7px;background:#fff;border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar-badge span{color:#fff;font-size:12px}
+.topbar-back{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.9);font-size:15px;margin-bottom:6px;cursor:pointer}
+.topbar-date{color:rgba(255,255,255,0.65);font-size:11px;margin-bottom:6px}
+.client-block{padding:14px 20px;border-left:4px solid;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.client-name{font-size:20px;font-weight:700;color:#1a1a1a}
+.client-tel{font-size:13px;color:#888780;margin-top:3px}
+.status-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:14px 16px;-webkit-overflow-scrolling:touch}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-title{font-size:13px;font-weight:600}
+.section-count{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600}
+.card{background:#fff;border-radius:16px;border:0.5px solid #e8e8e4;padding:14px;margin-bottom:10px;cursor:pointer}
+.card:active{opacity:.85}
+.card-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-name{font-size:15px;font-weight:600;color:#1a1a1a}
+.card-meta{font-size:12px;color:#888780;margin-top:3px}
+.card-motif{font-size:13px;margin-top:10px;padding:8px 12px;border-radius:10px;color:#1a1a1a;background:#F7F7F5;border:0.5px solid #e8e8e4;line-height:1.4}
+.card-slots{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.slot-chip{font-size:11px;padding:4px 10px;border-radius:8px;font-weight:500;background:#e8faf1;color:#2a9e6a}
+.card-time{font-size:10px;color:#b4b2a9;margin-top:6px}
+.btn-voir{font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;border:none;cursor:pointer;flex-shrink:0;background:#fff3d6;color:#a07a1a}
+.confirmed-card{background:#fff;border-radius:14px;border:0.5px solid #e8e8e4;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.card-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.card-time-c{font-size:15px;font-weight:600;color:#1a1a1a}
+.card-date-c{font-size:12px;color:#888780;margin-top:2px}
+.card-desc{font-size:13px;color:#888780;margin-top:2px}
+.voir-tout{font-size:12px;color:#2a9e6a;font-weight:600;text-align:center;margin-top:6px;cursor:pointer;padding:8px}
+.navbar{background:#fff;border-top:0.5px solid #e8e8e4;padding:10px 0;padding-bottom:max(env(safe-area-inset-bottom),10px);display:flex;flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0}
+.nav-label{font-size:10px;color:#888780}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:#64ce96}
+.screen{display:none;flex-direction:column;height:100dvh}
+.screen.active{display:flex}
+.detail-block{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;border:0.5px solid #e8e8e4}
+.detail-label{font-size:11px;color:#b4b2a9;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.detail-val{font-size:15px;color:#1a1a1a;font-weight:500;line-height:1.4}
+.reception-block{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;border:0.5px solid #e8e8e4}
+.slots-section{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;border:0.5px solid #e8e8e4}
+.slot-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #e8e8e4}
+.slot-row:last-child{border-bottom:none;padding-bottom:0}
+.slot-info{display:flex;flex-direction:column;gap:2px}
+.slot-date{font-size:14px;font-weight:600;color:#1a1a1a}
+.slot-dispo{font-size:11px;color:#2a9e6a}
+.slot-select-btn{font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;border:0.5px solid #64ce96;background:#e8faf1;color:#2a9e6a;cursor:pointer}
+.slot-select-btn.selected{background:#64ce96;color:#fff;border-color:#64ce96}
+.duree-row{display:flex;gap:6px;margin-top:10px}
+.duree-btn{flex:1;padding:8px 4px;border-radius:8px;border:0.5px solid #e8e8e4;background:#fff;font-size:11px;font-weight:500;color:#888780;cursor:pointer;text-align:center}
+.duree-btn.selected{background:#e8faf1;border-color:#64ce96;color:#2a9e6a;font-weight:600}
+.action-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.action-btn{padding:14px 8px;border-radius:16px;border:none;font-size:13px;font-weight:600;cursor:pointer;text-align:center;line-height:1.4}
+.action-btn:active{opacity:.8}
+.sms-wrap{background:#1a1a2e;border-radius:16px;padding:16px;margin-bottom:14px}
+.sms-lbl{font-size:11px;color:#6B7280;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+textarea{width:100%;background:#2a2a3e;border:0.5px solid #374151;border-radius:10px;padding:12px 14px;font-size:14px;color:#a8e8c4;font-family:'Courier New',monospace;line-height:1.55;resize:none;outline:none}
+textarea:focus{border-color:#64ce96}
+.char-bar{height:3px;background:#374151;border-radius:2px;margin-top:6px;overflow:hidden}
+.char-fill{height:100%;background:#64ce96;border-radius:2px;transition:width .2s,background .2s}
+.sms-footer{display:flex;justify-content:space-between;margin-top:6px}
+.sms-from{font-size:11px;color:#6B7280}
+.char-count{font-size:11px;color:#6B7280}
+.char-count.warn{color:#EF9F27}
+.btn-primary{width:100%;padding:15px;background:#64ce96;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-primary:disabled{opacity:.35;cursor:default}
+.btn-secondary{width:100%;padding:13px;background:transparent;color:#888780;border:0.5px solid #e8e8e4;border-radius:16px;font-size:14px;cursor:pointer;margin-top:8px}
+.btn-call{width:100%;padding:15px;background:#378ADD;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.toast{border-radius:14px;padding:13px 16px;margin:12px 0 0;font-size:13px;line-height:1.5}
+.success-circle{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+.step-dot-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px}
+.sd{width:8px;height:8px;border-radius:50%;background:#ddd}
+.sd.active{background:#64ce96;width:20px;border-radius:4px}
+.sd.done{background:#a8e8c4}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- DASHBOARD -->
+<div id="s-dashboard" class="screen active">
+  <div class="topbar">
+    <div class="topbar-greeting">Bonjour Morgan</div>
+    <div class="topbar-sub" id="dash-date"></div>
+    <div class="topbar-badge"><div class="topbar-badge-dot"></div><span>06 12 34 56 78 · actif</span></div>
+  </div>
+  <div class="content">
+    <div style="margin-bottom:18px">
+      <div class="section-header">
+        <span class="section-title" style="color:#a07a1a">À traiter</span>
+        <span class="section-count" style="background:#fff3d6;color:#a07a1a">3 demandes</span>
+      </div>
+      <div class="card" style="border-left:4px solid #ffbc4d;border-radius:0 16px 16px 0" onclick="show('s-detail')">
+        <div class="card-row"><div style="flex:1"><div class="card-name">Dupont Jean</div><div class="card-meta">Reçu aujourd'hui à 10h32</div></div><button class="btn-voir">Voir</button></div>
+        <div class="card-motif">Fuite sous l'évier de la cuisine, eau qui coule depuis ce matin</div>
+        <div class="card-slots"><span class="slot-chip">Mer 16 · 9h</span><span class="slot-chip">Mer 16 · 14h</span><span class="slot-chip">Jeu 17 · 10h</span></div>
+        <div class="card-time">3 créneaux suggérés · temps de trajet inclus</div>
+      </div>
+      <div class="card" style="border-left:4px solid #ffbc4d;border-radius:0 16px 16px 0">
+        <div class="card-row"><div style="flex:1"><div class="card-name">Bernard Claire</div><div class="card-meta">Reçu aujourd'hui à 12h15</div></div><button class="btn-voir">Voir</button></div>
+        <div class="card-motif">Chaudière qui ne s'allume plus, plus d'eau chaude</div>
+        <div class="card-slots"><span class="slot-chip">Jeu 17 · 14h</span><span class="slot-chip">Ven 18 · 9h</span></div>
+        <div class="card-time">2 créneaux suggérés</div>
+      </div>
+      <div class="card" style="border-left:4px solid #ffbc4d;border-radius:0 16px 16px 0">
+        <div class="card-row"><div style="flex:1"><div class="card-name">Petit Thomas</div><div class="card-meta">Reçu aujourd'hui à 13h47</div></div><button class="btn-voir">Voir</button></div>
+        <div class="card-motif">Remplacement robinet salle de bain</div>
+        <div class="card-slots"><span class="slot-chip">Ven 18 · 10h</span><span class="slot-chip">Ven 18 · 14h</span></div>
+        <div class="card-time">2 créneaux suggérés</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-header">
+        <span class="section-title" style="color:#2a9e6a">Planning confirmé</span>
+        <span class="section-count" style="background:#e8faf1;color:#2a9e6a">4 RDV</span>
+      </div>
+      <div class="confirmed-card"><div class="card-dot" style="background:#64ce96"></div><div><div class="card-time-c">9h00 — 1h</div><div class="card-date-c">Lundi 14 avril — aujourd'hui</div><div class="card-desc">Martin Paul · Chauffe-eau</div></div></div>
+      <div class="confirmed-card"><div class="card-dot" style="background:#64ce96"></div><div><div class="card-time-c">14h00 — 1h30</div><div class="card-date-c">Mercredi 16 avril</div><div class="card-desc">Simon Claire · Radiateur</div></div></div>
+      <div class="voir-tout" onclick="show('s-planning')">Voir les 2 autres RDV →</div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="8" height="8" rx="2" fill="#64ce96"/><rect x="12" y="2" width="8" height="8" rx="2" fill="#64ce96"/><rect x="2" y="12" width="8" height="8" rx="2" fill="#64ce96"/><rect x="12" y="12" width="8" height="8" rx="2" fill="#a8e8c4"/></svg><span class="nav-label" style="color:#2a9e6a;font-weight:600">Accueil</span><div class="nav-dot"></div></div>
+    <div class="nav-item" onclick="show('s-planning')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="16" rx="2" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M7 2v4M15 2v4M2 10h18" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-label">Planning</span></div>
+    <div class="nav-item" onclick="show('s-reglages')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M3 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="nav-label">Réglages</span></div>
+  </div>
+</div>
+
+<!-- DÉTAIL DEMANDE -->
+<div id="s-detail" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-dashboard')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+  </div>
+  <div class="topbar-date" style="padding:4px 20px 8px;background:#64ce96;font-size:11px;color:rgba(255,255,255,0.65)" id="date-detail"></div>
+  <div class="client-block" style="border-left-color:#ffbc4d;background:#fffdf4">
+    <div><div class="client-name">Dupont Jean</div><div class="client-tel">06 87 65 43 21</div></div>
+    <span class="status-pill" style="background:#fff3d6;color:#a07a1a">À traiter</span>
+  </div>
+  <div class="content">
+    <div class="reception-block">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0"><circle cx="7.5" cy="7.5" r="6" stroke="#b4b2a9" stroke-width="1.2" fill="none"/><path d="M7.5 4.5v3.5l2 1.5" stroke="#b4b2a9" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <div><div style="font-size:11px;color:#b4b2a9;margin-bottom:2px">Demande reçue le</div><div style="font-size:14px;font-weight:600;color:#1a1a1a">Lundi 14 avril à 10h32</div></div>
+    </div>
+    <div class="detail-block">
+      <div class="detail-label">Motif</div>
+      <div class="detail-val">Fuite sous l'évier de la cuisine, eau qui coule depuis ce matin</div>
+    </div>
+    <div class="slots-section">
+      <div class="detail-label" style="margin-bottom:4px">Créneaux suggérés</div>
+      <div style="font-size:11px;color:#b4b2a9;margin-bottom:10px">20 min de trajet inclus · durée par défaut : 1h</div>
+      <div class="slot-row"><div class="slot-info"><div class="slot-date">Mercredi 16 avril · 9h</div><div class="slot-dispo">Libre · après Martin Paul (8h-9h)</div></div><button class="slot-select-btn" id="slot1" onclick="selectSlot('slot1','Mer 16 avril · 9h')">Choisir</button></div>
+      <div class="slot-row"><div class="slot-info"><div class="slot-date">Mercredi 16 avril · 14h</div><div class="slot-dispo">Libre</div></div><button class="slot-select-btn" id="slot2" onclick="selectSlot('slot2','Mer 16 avril · 14h')">Choisir</button></div>
+      <div class="slot-row"><div class="slot-info"><div class="slot-date">Jeudi 17 avril · 10h</div><div class="slot-dispo">Libre</div></div><button class="slot-select-btn" id="slot3" onclick="selectSlot('slot3','Jeu 17 avril · 10h')">Choisir</button></div>
+      <div style="font-size:11px;color:#b4b2a9;margin-top:12px;margin-bottom:4px">Durée de l'intervention</div>
+      <div class="duree-row">
+        <button class="duree-btn" onclick="setDuree(this,'30 min','30min')">30 min</button>
+        <button class="duree-btn selected" onclick="setDuree(this,'1h','1h')">1h</button>
+        <button class="duree-btn" onclick="setDuree(this,'1h30','1h30')">1h30</button>
+        <button class="duree-btn" onclick="setDuree(this,'2h','2h')">2h</button>
+        <button class="duree-btn" onclick="setDuree(this,'3h','3h')">3h</button>
+      </div>
+    </div>
+    <div class="action-bar">
+      <button class="action-btn" style="background:#e8faf1;color:#2a9e6a;font-size:13px" id="btn-valider" onclick="show('s-apercu-valider')" disabled>✓ Valider</button>
+      <button class="action-btn" style="background:#fff3d6;color:#a07a1a;font-size:13px" onclick="show('s-apercu-adapter')">↔ Adapter</button>
+    </div>
+    <div class="action-bar" style="margin-top:8px">
+      <button class="action-btn" style="background:#E6F1FB;color:#185FA5;font-size:13px" onclick="show('s-appeler')">☎ Appeler</button>
+      <button class="action-btn" style="background:#ede8f8;color:#5b4b9a;font-size:13px" onclick="show('s-apercu-refus')">✗ Refuser</button>
+    </div>
+  </div>
+</div>
+
+<!-- APERÇU VALIDER -->
+<div id="s-apercu-valider" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-detail')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+  </div>
+  <div class="client-block" style="border-left-color:#64ce96;background:#f0fef8">
+    <div><div class="client-name">Dupont Jean · Valider</div><div class="client-tel">Vérifie le SMS avant envoi</div></div>
+    <span class="status-pill" style="background:#e8faf1;color:#2a9e6a">✓ Valider</span>
+  </div>
+  <div class="content">
+    <div class="step-dot-row"><div class="sd done"></div><div class="sd active"></div></div>
+    <div class="detail-block" style="background:#e8faf1;border-color:#a8e8c4">
+      <div class="detail-label">Créneau confirmé</div>
+      <div class="detail-val" id="recap-creneau" style="color:#2a9e6a">—</div>
+    </div>
+    <div class="sms-wrap">
+      <div class="sms-lbl">SMS envoyé à Dupont Jean — modifiable</div>
+      <textarea id="sms-valider" rows="5" oninput="updateChar('sms-valider','cc-valider','cf-valider')"></textarea>
+      <div class="char-bar"><div class="char-fill" id="cf-valider"></div></div>
+      <div class="sms-footer"><span class="sms-from">Depuis ton numéro pro</span><span class="char-count" id="cc-valider">0 / 160</span></div>
+    </div>
+    <button class="btn-primary" onclick="show('s-confirme')">Envoyer · RDV confirmé</button>
+    <button class="btn-secondary" onclick="show('s-detail')">Modifier le créneau</button>
+  </div>
+</div>
+
+<!-- APERÇU ADAPTER -->
+<div id="s-apercu-adapter" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-detail')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+  </div>
+  <div class="client-block" style="border-left-color:#ffbc4d;background:#fffdf4">
+    <div><div class="client-name">Dupont Jean · Adapter</div><div class="client-tel">Choisis un autre créneau</div></div>
+    <span class="status-pill" style="background:#fff3d6;color:#a07a1a">↔ Adapter</span>
+  </div>
+  <div class="content">
+    <div class="step-dot-row"><div class="sd active"></div><div class="sd"></div></div>
+    <div class="slots-section" style="margin-bottom:10px">
+      <div class="detail-label" style="margin-bottom:8px">Autres créneaux disponibles</div>
+      <div class="slot-row"><div class="slot-info"><div class="slot-date">Vendredi 18 avril · 9h</div><div class="slot-dispo">Libre</div></div><button class="slot-select-btn selected" onclick="selectAdapt(this,'Ven 18 avril · 9h')">✓</button></div>
+      <div class="slot-row"><div class="slot-info"><div class="slot-date">Vendredi 18 avril · 14h</div><div class="slot-dispo">Libre</div></div><button class="slot-select-btn" onclick="selectAdapt(this,'Ven 18 avril · 14h')">Choisir</button></div>
+      <div class="slot-row"><div class="slot-info"><div class="slot-date">Lundi 21 avril · 10h</div><div class="slot-dispo">Libre</div></div><button class="slot-select-btn" onclick="selectAdapt(this,'Lun 21 avril · 10h')">Choisir</button></div>
+    </div>
+    <div class="sms-wrap">
+      <div class="sms-lbl">SMS envoyé à Dupont Jean — modifiable</div>
+      <textarea id="sms-adapter" rows="5" oninput="updateChar('sms-adapter','cc-adapter','cf-adapter')">Bonjour, Morgan confirme votre RDV :
+
+Vendredi 18 avril de 9h à 10h
+
+À bientôt ! Répondez 3 pour annuler.</textarea>
+      <div class="char-bar"><div class="char-fill" id="cf-adapter" style="width:70%"></div></div>
+      <div class="sms-footer"><span class="sms-from">Depuis ton numéro pro</span><span class="char-count" id="cc-adapter">112 / 160</span></div>
+    </div>
+    <button class="btn-primary" onclick="show('s-confirme')">Envoyer · RDV confirmé</button>
+  </div>
+</div>
+
+<!-- APPELER -->
+<div id="s-appeler" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-detail')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+  </div>
+  <div class="client-block" style="border-left-color:#378ADD;background:#f4f8ff">
+    <div><div class="client-name">Dupont Jean</div><div class="client-tel">06 87 65 43 21</div></div>
+    <span class="status-pill" style="background:#E6F1FB;color:#185FA5">☎ Appeler</span>
+  </div>
+  <div class="content">
+    <div class="detail-block"><div class="detail-label">Motif</div><div class="detail-val">Fuite sous l'évier de la cuisine, eau qui coule depuis ce matin</div></div>
+    <div class="detail-block" style="background:#E6F1FB;border-color:#B5D4F4">
+      <div style="font-size:13px;color:#185FA5;font-weight:500">Appelle pour avoir plus d'infos avant de décider.</div>
+      <div style="font-size:12px;color:#378ADD;margin-top:4px">Après l'appel : reviens valider, adapter ou refuser.</div>
+    </div>
+    <a href="tel:+33687654321" style="text-decoration:none">
+      <button class="btn-call" onclick="logCall()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 3l2.5 2.5M3 3C2 4.2 1 6.5 1 9c0 4.4 3.6 8 8 8l-2.5-2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+        Appeler Dupont Jean
+      </button>
+    </a>
+    <div id="call-logged" style="display:none;margin-top:10px;padding:12px;background:#e8faf1;border-radius:12px;font-size:13px;color:#2a9e6a;text-align:center">✓ Appel enregistré dans l'historique</div>
+    <button class="btn-secondary" onclick="show('s-detail')">Retour — choisir une action</button>
+  </div>
+</div>
+
+<!-- APERÇU REFUSER -->
+<div id="s-apercu-refus" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-detail')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+  </div>
+  <div class="client-block" style="border-left-color:#8e7cc3;background:#faf8ff">
+    <div><div class="client-name">Dupont Jean · Refuser</div><div class="client-tel">Personnalise le message</div></div>
+    <span class="status-pill" style="background:#ede8f8;color:#5b4b9a">✗ Refuser</span>
+  </div>
+  <div class="content">
+    <div class="sms-wrap">
+      <div class="sms-lbl">SMS envoyé à Dupont Jean — modifiable</div>
+      <textarea id="sms-refus" rows="4" oninput="updateChar('sms-refus','cc-refus','cf-refus')">Bonjour, Morgan ne peut malheureusement pas prendre ce RDV. Nous vous souhaitons bonne continuation.</textarea>
+      <div class="char-bar"><div class="char-fill" id="cf-refus" style="width:58%;background:#8e7cc3"></div></div>
+      <div class="sms-footer"><span class="sms-from">Depuis ton numéro pro</span><span class="char-count" id="cc-refus">93 / 160</span></div>
+    </div>
+    <button class="btn-primary" style="background:#8e7cc3" onclick="show('s-dashboard')">Envoyer · Demande refusée</button>
+    <button class="btn-secondary" onclick="show('s-detail')">Annuler</button>
+  </div>
+</div>
+
+<!-- CONFIRMÉ -->
+<div id="s-confirme" class="screen">
+  <div class="topbar"><div class="topbar-greeting" style="font-size:19px">RDV confirmé !</div><div class="topbar-sub">SMS envoyé au client</div></div>
+  <div class="toast" style="background:#2a9e6a;color:#fff;margin:12px">"Bonjour, Morgan confirme votre RDV : <span id="confirme-creneau"></span>. À bientôt !"</div>
+  <div class="content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1">
+    <div class="success-circle" style="background:#e8faf1"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16l7 7L26 9" stroke="#64ce96" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:4px">Dupont Jean</div>
+    <div style="font-size:15px;color:#2a9e6a;font-weight:600;margin-bottom:4px" id="confirme-label">—</div>
+    <div style="font-size:13px;color:#888780;margin-bottom:40px">RDV ajouté dans ton Google Calendar</div>
+    <button onclick="show('s-dashboard')" class="btn-primary" style="width:auto;padding:14px 32px">Retour au tableau de bord</button>
+  </div>
+</div>
+
+<!-- PLANNING -->
+<div id="s-planning" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-dashboard')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+    <div class="topbar-greeting" style="font-size:19px">Planning semaine</div>
+  </div>
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="width:30px;height:30px;border-radius:50%;background:#fff;border:0.5px solid #e8e8e4;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <span style="font-size:14px;font-weight:600;color:#1a1a1a">14 — 20 avril</span>
+      <div style="width:30px;height:30px;border-radius:50%;background:#fff;border:0.5px solid #e8e8e4;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 11l4-4-4-4" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+    </div>
+    <div style="display:grid;grid-template-columns:32px repeat(7,1fr);gap:3px;margin-bottom:4px">
+      <div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#888780;font-weight:600;text-transform:uppercase">Lun</span><span style="width:24px;height:24px;border-radius:50%;background:#64ce96;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">14</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#888780;font-weight:600;text-transform:uppercase">Mar</span><span style="width:24px;height:24px;border-radius:50%;color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">15</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#888780;font-weight:600;text-transform:uppercase">Mer</span><span style="width:24px;height:24px;border-radius:50%;color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">16</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#888780;font-weight:600;text-transform:uppercase">Jeu</span><span style="width:24px;height:24px;border-radius:50%;color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">17</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#888780;font-weight:600;text-transform:uppercase">Ven</span><span style="width:24px;height:24px;border-radius:50%;color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">18</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#b4b2a9;font-weight:600;text-transform:uppercase">Sam</span><span style="width:24px;height:24px;border-radius:50%;color:#b4b2a9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">19</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:9px;color:#b4b2a9;font-weight:600;text-transform:uppercase">Dim</span><span style="width:24px;height:24px;border-radius:50%;color:#b4b2a9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">20</span></div>
+    </div>
+    <div id="planning-grid"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888780"><div style="width:8px;height:8px;border-radius:2px;background:#e8faf1;border:1px solid #a8e8c4"></div>Confirmé</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888780"><div style="width:8px;height:8px;border-radius:2px;background:#fff3d6;border:1px solid #ffbc4d"></div>À traiter</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888780"><div style="width:8px;height:8px;border-radius:2px;background:#f0f0ed;border:1px solid #ddd"></div>Libre</div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item" onclick="show('s-dashboard')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="8" height="8" rx="2" fill="#888780"/><rect x="12" y="2" width="8" height="8" rx="2" fill="#888780"/><rect x="2" y="12" width="8" height="8" rx="2" fill="#888780"/><rect x="12" y="12" width="8" height="8" rx="2" fill="#c8c6be"/></svg><span class="nav-label">Accueil</span></div>
+    <div class="nav-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="16" rx="2" stroke="#64ce96" stroke-width="1.5" fill="none"/><path d="M7 2v4M15 2v4M2 10h18" stroke="#64ce96" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-label" style="color:#2a9e6a;font-weight:600">Planning</span><div class="nav-dot"></div></div>
+    <div class="nav-item" onclick="show('s-reglages')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M3 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#888780" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="nav-label">Réglages</span></div>
+  </div>
+</div>
+
+<!-- RÉGLAGES -->
+<div id="s-reglages" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" onclick="show('s-dashboard')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L7 9l4-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>Retour</div>
+    <div class="topbar-greeting" style="font-size:19px">Réglages</div>
+  </div>
+  <div class="content">
+    <div style="margin-bottom:18px">
+      <div class="section-title" style="color:#1a1a1a;margin-bottom:10px">Planning & disponibilités</div>
+      <div class="detail-block">
+        <div class="detail-label">Temps de déplacement moyen</div>
+        <div class="duree-row" style="margin-top:6px">
+          <button class="duree-btn" onclick="setReg(this)">15 min</button>
+          <button class="duree-btn selected" onclick="setReg(this)">20 min</button>
+          <button class="duree-btn" onclick="setReg(this)">30 min</button>
+          <button class="duree-btn" onclick="setReg(this)">45 min</button>
+        </div>
+      </div>
+      <div class="detail-block">
+        <div class="detail-label">Durée d'intervention par défaut</div>
+        <div class="duree-row" style="margin-top:6px">
+          <button class="duree-btn" onclick="setReg(this)">30 min</button>
+          <button class="duree-btn selected" onclick="setReg(this)">1h</button>
+          <button class="duree-btn" onclick="setReg(this)">1h30</button>
+          <button class="duree-btn" onclick="setReg(this)">2h</button>
+        </div>
+      </div>
+      <div class="detail-block">
+        <div class="detail-label">Heures de travail</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+          <div style="flex:1"><div style="font-size:11px;color:#b4b2a9;margin-bottom:4px">Début</div><select style="width:100%;padding:8px;border:0.5px solid #e8e8e4;border-radius:8px;font-size:14px;background:#fff;color:#1a1a1a"><option>7h</option><option selected>8h</option><option>9h</option></select></div>
+          <div style="font-size:18px;color:#b4b2a9;margin-top:16px">→</div>
+          <div style="flex:1"><div style="font-size:11px;color:#b4b2a9;margin-bottom:4px">Fin</div><select style="width:100%;padding:8px;border:0.5px solid #e8e8e4;border-radius:8px;font-size:14px;background:#fff;color:#1a1a1a"><option>17h</option><option selected>18h</option><option>19h</option><option>20h</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="section-title" style="color:#1a1a1a;margin-bottom:10px">Agendas Google Calendar</div>
+      <div class="detail-block">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #e8e8e4">
+          <div><div style="font-size:14px;font-weight:600;color:#1a1a1a">morgan.plombier@gmail.com</div><div style="font-size:11px;color:#2a9e6a;margin-top:2px">Agenda principal</div></div>
+          <div style="width:20px;height:20px;border-radius:50%;background:#64ce96;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+          <div><div style="font-size:14px;font-weight:500;color:#1a1a1a">Agenda famille</div><div style="font-size:11px;color:#888780;margin-top:2px">Partagé</div></div>
+          <div style="width:20px;height:20px;border-radius:6px;border:0.5px solid #e8e8e4;background:#fff"></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="section-title" style="color:#1a1a1a;margin-bottom:10px">Mon numéro pro</div>
+      <div class="detail-block">
+        <div style="font-size:18px;font-weight:600;color:#1a1a1a">06 12 34 56 78</div>
+        <div style="font-size:12px;color:#2a9e6a;margin-top:4px">Actif · les SMS clients arrivent sur ce numéro</div>
+      </div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item" onclick="show('s-dashboard')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="8" height="8" rx="2" fill="#888780"/><rect x="12" y="2" width="8" height="8" rx="2" fill="#888780"/><rect x="2" y="12" width="8" height="8" rx="2" fill="#888780"/><rect x="12" y="12" width="8" height="8" rx="2" fill="#c8c6be"/></svg><span class="nav-label">Accueil</span></div>
+    <div class="nav-item" onclick="show('s-planning')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="16" rx="2" stroke="#888780" stroke-width="1.5" fill="none"/><path d="M7 2v4M15 2v4M2 10h18" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nav-label">Planning</span></div>
+    <div class="nav-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#64ce96" stroke-width="1.5" fill="none"/><path d="M3 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#64ce96" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="nav-label" style="color:#2a9e6a;font-weight:600">Réglages</span><div class="nav-dot"></div></div>
+  </div>
+</div>
+
+</div>
+<script>
+const J=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const M=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function dateStr(){const d=new Date();return J[d.getDay()]+' '+d.getDate()+' '+M[d.getMonth()];}
+function setDates(){const s=dateStr();document.getElementById('dash-date').textContent=s;document.getElementById('date-detail').textContent=s;}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+let selSlot=null,selDureeLabel='1h';
+
+function selectSlot(id,label){
+  document.querySelectorAll('#s-detail .slot-select-btn').forEach(b=>{b.classList.remove('selected');b.textContent='Choisir';});
+  const btn=document.getElementById(id);btn.classList.add('selected');btn.textContent='✓';
+  selSlot=label;
+  document.getElementById('btn-valider').disabled=false;
+  const fin=getFin(selDureeLabel,label);
+  const txt=`Bonjour, Morgan confirme votre RDV :\n\n${label} (${selDureeLabel})\n\nÀ bientôt ! Répondez 3 pour annuler.`;
+  document.getElementById('sms-valider').value=txt;
+  document.getElementById('recap-creneau').textContent=label+' · '+selDureeLabel;
+  document.getElementById('confirme-label').textContent=label+' · '+selDureeLabel;
+  document.getElementById('confirme-creneau').textContent=label;
+  updateChar('sms-valider','cc-valider','cf-valider');
+}
+
+function getFin(duree,slot){return slot;}
+
+function setDuree(btn,label,key){
+  document.querySelectorAll('#s-detail .duree-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');selDureeLabel=label;
+  if(selSlot)selectSlot(document.querySelector('#s-detail .slot-select-btn.selected')?.id||null,selSlot);
+}
+
+function selectAdapt(btn,label){
+  document.querySelectorAll('#s-apercu-adapter .slot-select-btn').forEach(b=>{b.classList.remove('selected');b.textContent='Choisir';});
+  btn.classList.add('selected');btn.textContent='✓';
+  const txt=`Bonjour, Morgan confirme votre RDV :\n\n${label} (1h)\n\nÀ bientôt ! Répondez 3 pour annuler.`;
+  document.getElementById('sms-adapter').value=txt;
+  updateChar('sms-adapter','cc-adapter','cf-adapter');
+}
+
+function updateChar(taId,ccId,cfId){
+  const v=document.getElementById(taId)?.value||'';
+  const l=v.length,m=160,p=Math.min(l/m*100,100);
+  const cf=document.getElementById(cfId);
+  const cc=document.getElementById(ccId);
+  if(cf){cf.style.width=p+'%';cf.style.background=l>150?'#EF9F27':l>160?'#E24B4A':'#64ce96';}
+  if(cc){cc.textContent=l+' / '+m;cc.className='char-count'+(l>150?' warn':'');}
+}
+
+function logCall(){document.getElementById('call-logged').style.display='block';}
+
+function setReg(btn){
+  const parent=btn.closest('.duree-row');
+  parent.querySelectorAll('.duree-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+const SLOTS=['8h','10h','14h','17h'];
+const DATA=[
+  ['confirmed','free','free','free','free','',''],
+  ['free','pending','pending','pending','pending','',''],
+  ['free','free','confirmed','free','free','',''],
+  ['free','free','free','free','confirmed','',''],
+];
+const NAMES=[
+  ['Martin P','','','','','',''],
+  ['','Dupont J','Bernard C','—','Petit T','',''],
+  ['','','Simon C','','','',''],
+  ['','','','','Renard L','',''],
+];
+const grid=document.getElementById('planning-grid');
+SLOTS.forEach((s,i)=>{
+  const row=document.createElement('div');
+  row.style.cssText='display:grid;grid-template-columns:32px repeat(7,1fr);gap:3px;margin-bottom:3px;align-items:stretch';
+  const lbl=document.createElement('div');
+  lbl.style.cssText='display:flex;align-items:center;justify-content:flex-end;padding-right:4px';
+  lbl.innerHTML=`<span style="font-size:9px;color:#b4b2a9;font-weight:500">${s}</span>`;
+  row.appendChild(lbl);
+  DATA[i].forEach((type,j)=>{
+    const cell=document.createElement('div');
+    const isWE=j>=5;
+    let bg,color,name=NAMES[i][j]||'·';
+    if(isWE){bg='#f7f7f5';color='#e0ddd4';name='·';}
+    else if(type==='confirmed'){bg='#e8faf1';color='#2a9e6a';}
+    else if(type==='pending'){bg='#fff3d6';color='#a07a1a';}
+    else{bg='#f0f0ed';color='#d3d1c7';name='·';}
+    cell.style.cssText=`border-radius:6px;min-height:42px;display:flex;align-items:center;justify-content:center;padding:4px 2px;background:${bg};cursor:${(type&&!isWE&&type!=='free')?'pointer':'default'}`;
+    cell.innerHTML=`<span style="font-size:8px;text-align:center;line-height:1.2;font-weight:600;color:${color};overflow:hidden">${name}</span>`;
+    if(type==='pending'&&!isWE)cell.onclick=()=>show('s-detail');
+    if(type==='confirmed'&&!isWE)cell.onclick=()=>show('s-planning');
+    row.appendChild(cell);
+  });
+  grid.appendChild(row);
+});
+
+setDates();
+updateChar('sms-adapter','cc-adapter','cf-adapter');
+updateChar('sms-refus','cc-refus','cf-refus');
+</script>
+</body>
+</html>
